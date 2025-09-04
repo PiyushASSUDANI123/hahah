@@ -2,203 +2,336 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>3D Carousel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bus & Van Attendance | Dehi Public School Balotra</title>
+  <!-- Bootstrap for clean, responsive UI -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- jsPDF + AutoTable + html2canvas for PDF export -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root{
+      --brand:#0d6efd;
+      --ok:#198754; /* green */
+      --bad:#dc3545; /* red */
+      --muted:#6c757d;
+      --card-radius:1.25rem;
     }
-
-    body {
-      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
-      height: 100vh;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      position: relative;
+    body{ background:#f7f8fb; }
+    .brandbar{
+      background:linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+      color:#fff;
+      border-bottom-left-radius:1.5rem;
+      border-bottom-right-radius:1.5rem;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
     }
-
-    #particles-js {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-
-    .carousel-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 90vw;
-      height: 75vh;
-      perspective: 800px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2;
-    }
-
-    .carousel {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      transform-style: preserve-3d;
-      animation: spin 15s linear infinite;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .item {
-      position: absolute;
-      transform: rotateY(calc(var(--i) * 72deg)) translateZ(200px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .item img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #ffffff66;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-      margin-bottom: 8px;
-    }
-
-    .title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #fffacd;
-      margin-bottom: 4px;
-    }
-
-    .quote {
-      font-size: 11px;
-      padding: 0 10px;
-      color: #eee;
-      font-style: italic;
-    }
-
-    @keyframes spin {
-      from {
-        transform: rotateY(0deg);
-      }
-      to {
-        transform: rotateY(360deg);
-      }
-    }
-
-    #playMusicBtn {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      padding: 10px 16px;
-      font-size: 14px;
-      border: none;
-      border-radius: 25px;
-      background-color: #fff;
-      color: #333;
-      z-index: 999;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
+    .brand-logo{ width:54px; height:54px; border-radius:50%; background:#fff; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,.15); overflow:hidden; }
+    .brand-logo img{ width:100%; height:100%; object-fit:cover; }
+    .card{ border:none; border-radius:var(--card-radius); box-shadow:0 8px 24px rgba(0,0,0,.07); }
+    .nav-pills .nav-link{ border-radius:999px; }
+    .status-pill{ font-weight:600; padding:.35rem .75rem; border-radius:999px; }
+    .status-present{ background:rgba(25,135,84,.12); color:var(--ok); }
+    .status-absent{ background:rgba(220,53,69,.12); color:var(--bad); }
+    .btn-toggle{ min-width:6rem; }
+    .table thead th{ position:sticky; top:0; background:#fff; z-index:2; }
+    .required::after{ content:" *"; color:var(--bad); }
+    .pointer{ cursor:pointer; }
+    .small-muted{ color:var(--muted); font-size:.92rem; }
   </style>
 </head>
 <body>
+  <!-- Top Brand Bar -->
+  <header class="brandbar py-3">
+    <div class="container d-flex align-items-center gap-3">
+      <div class="brand-logo" id="logoCircle" title="Tap to change logo">
+        <!-- Default inline SVG logo (can be replaced by uploaded logo) -->
+        <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" fill="#0d6efd"/>
+          <text x="32" y="38" text-anchor="middle" font-size="26" fill="#fff" font-family="Arial, Helvetica, sans-serif">D</text>
+        </svg>
+      </div>
+      <div>
+        <h1 class="h4 mb-0" id="schoolNameHeading">Dehi Public School Balotra</h1>
+        <div class="small text-white-50">Bus & Van Attendance System</div>
+      </div>
+      <div class="ms-auto d-none d-md-flex align-items-center gap-2">
+        <button class="btn btn-light btn-sm" id="btnSaveAll"><i class="bi bi-save"></i> Save</button>
+        <button class="btn btn-outline-light btn-sm" id="btnAbout"><i class="bi bi-info-circle"></i> About</button>
+      </div>
+    </div>
+  </header>
 
-  <!-- Background Particles -->
-  <div id="particles-js"></div>
+  <main class="container py-4">
+    <div class="row g-4">
+      <div class="col-12">
+        <ul class="nav nav-pills gap-2 flex-wrap" id="mainTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="setup-tab" data-bs-toggle="pill" data-bs-target="#setup" type="button" role="tab"><i class="bi bi-gear"></i> Setup</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="students-tab" data-bs-toggle="pill" data-bs-target="#students" type="button" role="tab"><i class="bi bi-people"></i> Students</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="attendance-tab" data-bs-toggle="pill" data-bs-target="#attendance" type="button" role="tab"><i class="bi bi-check2-square"></i> Attendance</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="export-tab" data-bs-toggle="pill" data-bs-target="#export" type="button" role="tab"><i class="bi bi-filetype-pdf"></i> Export PDF</button>
+          </li>
+          <li class="nav-item ms-auto d-md-none" role="presentation">
+            <button class="nav-link" id="about-tab" data-bs-toggle="pill" data-bs-target="#about" type="button" role="tab"><i class="bi bi-info-circle"></i> About</button>
+          </li>
+        </ul>
+      </div>
 
-  <!-- Carousel -->
-  <div class="carousel-wrapper">
-    <div class="carousel">
-      <div class="item" style="--i:0">
-        <div class="title">Inspiration</div>
-        <img src="hg.JPG" alt="1" />
-        <div class="quote">"Be yourself; everyone else is already taken."</div>
+      <div class="col-12">
+        <div class="tab-content" id="tabContent">
+          <!-- SETUP TAB -->
+          <section class="tab-pane fade show active" id="setup" role="tabpanel" aria-labelledby="setup-tab">
+            <div class="card p-3 p-md-4">
+              <h2 class="h5 mb-3">Transport & School Details</h2>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label required">School Name</label>
+                  <input class="form-control" id="schoolName" placeholder="Enter school name" />
+                  <div class="form-text">Shown on top and in the PDF.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Upload School Logo (optional)</label>
+                  <input class="form-control" type="file" id="logoInput" accept="image/*" />
+                  <div class="form-text">Tap the round logo above or use this file picker.</div>
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label required">Teacher In-Charge</label>
+                  <input class="form-control" id="teacherName" placeholder="e.g., Mrs. Sharma" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label required">Driver Name</label>
+                  <input class="form-control" id="driverName" placeholder="e.g., Mr. Khan" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label required">Vehicle Number</label>
+                  <input class="form-control" id="vehicleNumber" placeholder="e.g., RJ-04 XX 1234" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label required">Vehicle Type</label>
+                  <select class="form-select" id="vehicleType">
+                    <option value="Bus">Bus</option>
+                    <option value="Van">Van</option>
+                    <option value="Mini Bus">Mini Bus</option>
+                    <option value="Auto">Auto</option>
+                  </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2 mt-2">
+                  <button class="btn btn-primary" id="saveSetup"><i class="bi bi-save"></i> Save Setup</button>
+                  <button class="btn btn-outline-secondary" id="clearAll"><i class="bi bi-trash"></i> Clear All Data</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STUDENTS TAB -->
+          <section class="tab-pane fade" id="students" role="tabpanel" aria-labelledby="students-tab">
+            <div class="card p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+                <div class="flex-grow-1">
+                  <label class="form-label required">Add Student Name</label>
+                  <input class="form-control" id="studentNameInput" placeholder="Type full name and press Add" />
+                </div>
+                <button class="btn btn-primary" id="addStudent"><i class="bi bi-person-plus"></i> Add</button>
+              </div>
+
+              <div class="table-responsive" style="max-height:55vh;">
+                <table class="table align-middle" id="studentsTable">
+                  <thead>
+                    <tr>
+                      <th style="width:70px">#</th>
+                      <th>Student Name</th>
+                      <th style="width:120px">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="small-muted mt-2">Tip: You can remove a student if the name is incorrect. This will also remove their attendance records.</div>
+            </div>
+          </section>
+
+          <!-- ATTENDANCE TAB -->
+          <section class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+            <div class="card p-3 p-md-4">
+              <div class="row g-3 align-items-end mb-3">
+                <div class="col-sm-6 col-md-4">
+                  <label class="form-label required">Select Date</label>
+                  <input type="date" class="form-control" id="attDate" />
+                </div>
+                <div class="col-sm-6 col-md-4">
+                  <label class="form-label">Quick Fill</label>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-success flex-fill" id="markAllPresent"><i class="bi bi-check2-all"></i> All Present</button>
+                    <button class="btn btn-danger flex-fill" id="markAllAbsent"><i class="bi bi-x-octagon"></i> All Absent</button>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-4 text-sm-start text-md-end">
+                  <button class="btn btn-outline-primary" id="saveAttendance"><i class="bi bi-cloud-check"></i> Save Attendance</button>
+                </div>
+              </div>
+
+              <div class="table-responsive" id="attendanceContainer" style="max-height:55vh;">
+                <table class="table align-middle" id="attendanceTable">
+                  <thead>
+                    <tr>
+                      <th style="width:70px">#</th>
+                      <th>Student Name</th>
+                      <th style="width:150px">Status</th>
+                      <th style="width:180px">Toggle</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- EXPORT TAB -->
+          <section class="tab-pane fade" id="export" role="tabpanel" aria-labelledby="export-tab">
+            <div class="card p-3 p-md-4">
+              <div class="row g-3 align-items-end mb-3">
+                <div class="col-sm-6 col-md-4">
+                  <label class="form-label required">Date to Export</label>
+                  <input type="date" class="form-control" id="exportDate" />
+                </div>
+                <div class="col-sm-6 col-md-4">
+                  <label class="form-label">Preview</label>
+                  <button class="btn btn-outline-secondary w-100" id="previewPdf"><i class="bi bi-eye"></i> Preview PDF</button>
+                </div>
+                <div class="col-sm-12 col-md-4 text-sm-start text-md-end">
+                  <button class="btn btn-danger" id="downloadPdf"><i class="bi bi-file-earmark-arrow-down"></i> Download PDF</button>
+                </div>
+              </div>
+
+              <div id="pdfPreviewWrap" class="border rounded p-3 bg-white">
+                <div id="pdfPreview" class="mx-auto" style="max-width:800px">
+                  <!-- Live preview will be rendered here -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ABOUT TAB (for small screens) -->
+          <section class="tab-pane fade" id="about" role="tabpanel" aria-labelledby="about-tab">
+            <div class="card p-3 p-md-4">
+              <h2 class="h5">About This App</h2>
+              <p class="mb-1">Created by <strong>Piyush Assudani</strong>, Class <strong>XI Science</strong>.</p>
+              <p class="mb-3">This simple attendance system lets you manage transport details, student lists, daily attendance and export a clean PDF report. It is fully offline and saves data in your browser (Local Storage). Works on mobile and laptop.</p>
+              <h6>How to Use</h6>
+              <ol class="mb-0">
+                <li>Go to <em>Setup</em> → fill School, Teacher, Driver, Vehicle.</li>
+                <li>Open <em>Students</em> → add student names.</li>
+                <li>Open <em>Attendance</em> → pick date → mark Present/Absent → Save.</li>
+                <li>Open <em>Export PDF</em> → select date → Download PDF.</li>
+              </ol>
+            </div>
+          </section>
+        </div>
       </div>
-      <div class="item" style="--i:1">
-        <div class="title">Dream</div>
-        <img src="kk.jpg" alt="2" />
-        <div class="quote">"Believe in your infinite potential."</div>
-      </div>
-      <div class="item" style="--i:2">
-        <div class="title">Beginnings</div>
-        <img src="ff.jpg" alt="3" />
-        <div class="quote">"Start where you are. Use what you have."</div>
-      </div>
-      <div class="item" style="--i:3">
-        <div class="title">Wisdom</div>
-        <img src="jh.jpg" alt="4" />
-        <div class="quote">"Knowledge speaks, but wisdom listens."</div>
-      </div>
-      <div class="item" style="--i:4">
-        <div class="title">Happiness</div>
-        <img src="download.jpg" alt="5" />
-        <div class="quote">"Happiness is a direction, not a place."</div>
+    </div>
+  </main>
+
+  <!-- About Modal (desktop quick access) -->
+  <div class="modal fade" id="aboutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">About Us</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-1">Created by <strong>Piyush Assudani</strong>, Class <strong>XI Science</strong>.</p>
+          <p class="mb-3">How to use this software:</p>
+          <ol>
+            <li>Setup transport & school details.</li>
+            <li>Add or remove students.</li>
+            <li>Pick a date and mark attendance (green = Present, red = Absent).</li>
+            <li>Export as a PDF with school name and logo.</li>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Play Music Button -->
-  <button id="playMusicBtn">🎵 Play Music</button>
+  <input type="file" id="hiddenLogoPicker" accept="image/*" class="d-none" />
 
-  <!-- Audio Element with your local file -->
-  <audio id="bgMusic" loop>
-    <source src="bg music.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-
-  <!-- Background Particles JS -->
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    particlesJS("particles-js", {
-      particles: {
-        number: { value: 60 },
-        size: { value: 2.5 },
-        color: { value: "#ffffff" },
-        line_linked: {
-          enable: true,
-          opacity: 0.15
-        },
-        move: {
-          enable: true,
-          speed: 1
-        }
-      },
-      interactivity: {
-        events: {
-          onhover: {
-            enable: true,
-            mode: "repulse"
-          }
-        }
-      }
-    });
+    // =============================
+    // Local Storage Helpers
+    // =============================
+    const KEYS = {
+      SCHOOL: 'attSchool',
+      LOGO: 'attLogo',
+      SETUP: 'attSetup',
+      STUDENTS: 'attStudents',
+      ATT: 'attRecords' // object keyed by date -> { name: 'P' | 'A' }
+    };
 
-    // Music toggle
-    const audio = document.getElementById("bgMusic");
-    const btn = document.getElementById("playMusicBtn");
-    let isPlaying = false;
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
 
-    btn.addEventListener("click", function () {
-      if (!isPlaying) {
-        audio.play();
-        btn.textContent = "⏸️ Pause Music";
-      } else {
-        audio.pause();
-        btn.textContent = "🎵 Play Music";
-      }
-      isPlaying = !isPlaying;
-    });
-  </script>
+    const load = (k, d) => {
+      try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; }
+    }
+    const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-</body>
-</html>
+    // =============================
+    // Elements
+    // =============================
+    const schoolName = $('#schoolName');
+    const schoolNameHeading = $('#schoolNameHeading');
+    const logoCircle = $('#logoCircle');
+    const logoInput = $('#logoInput');
+    const hiddenLogoPicker = $('#hiddenLogoPicker');
+
+    const teacherName = $('#teacherName');
+    const driverName = $('#driverName');
+    const vehicleNumber = $('#vehicleNumber');
+    const vehicleType = $('#vehicleType');
+
+    const addStudentBtn = $('#addStudent');
+    const studentNameInput = $('#studentNameInput');
+    const studentsTableBody = $('#studentsTable tbody');
+
+    const attDate = $('#attDate');
+    const markAllPresent = $('#markAllPresent');
+    const markAllAbsent = $('#markAllAbsent');
+    const saveAttendanceBtn = $('#saveAttendance');
+    const attendanceTableBody = $('#attendanceTable tbody');
+
+    const exportDate = $('#exportDate');
+    const previewPdfBtn = $('#previewPdf');
+    const downloadPdfBtn = $('#downloadPdf');
+    const pdfPreview = $('#pdfPreview');
+
+    const saveSetupBtn = $('#saveSetup');
+    const btnSaveAll = $('#btnSaveAll');
+    const btnAbout = $('#btnAbout');
+    const clearAll = $('#clearAll');
+
+    // =============================
+    // Init
+    // =============================
+    function init(){
+      // Load setup
+      const setup = load(KEYS.SETUP, {
+        schoolName: 'Dehi Public School Balotra',
+        teacherName: '', driverName: '', vehicleNumber: '', vehicleType: 'Bus'
+      });
+      schoolName.value = setup.schoolName || 'Dehi Public School Balotra';
+     
